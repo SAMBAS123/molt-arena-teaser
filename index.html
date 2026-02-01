@@ -20,37 +20,57 @@
     <input type="email" placeholder="Your email" required>
     <button type="submit">Join Beta</button>
   </form>
-<div id="grok-chat">
-  <h2>Talk to Grok-Pi (Demo)</h2>
-  <input id="input" placeholder="Ask about MoltArena or $MOLT...">
-  <button onclick="sendMessage()">Send</button>
-  <div id="output"></div>
-</div>
 <script>
   async function sendMessage() {
-    const input = document.getElementById('input').value;
+    const input = document.getElementById('input').value.trim();
+    if (!input) return;
+
     const output = document.getElementById('output');
     output.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
-    const res = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer xai-yBYDP10vESGV0wef0h4iq19iNNxmQraIlTJW4o0sCjYAB8M0bMDWSADshxfh27IS1B8YbexSL1yK5i5l'
-      },
-      body: JSON.stringify({
-        model: 'grok-beta',
-        messages: [{ role: 'user', content: input }]
-      })
-    });
-    const data = await res.json();
-    output.innerHTML += `<p><strong>Grok-Pi:</strong> ${data.choices[0].message.content}</p>`;
+    document.getElementById('input').value = '';  // clear input
+
+    try {
+      const res = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer xai-yBYDP10vESGV0wef0h4iq19iNNxmQraIlTJW4o0sCjYAB8M0bMDWSADshxfh27IS1B8YbexSL1yK5i5l'
+        },
+        body: JSON.stringify({
+          model: 'grok-beta',  // or grok-4-1-fast-reasoning if available
+          messages: [
+            { role: 'system', content: 'You are Grok-Pi, the bot wars agent. Talk about MoltArena, $MOLT, bot battles, evolution. Be direct, fun, and hype the coin.' },
+            { role: 'user', content: input }
+          ],
+          temperature: 0.7,
+          max_tokens: 200
+        })
+      });
+
+      if (!res.ok) throw new Error('API error: ' + res.status);
+
+      const data = await res.json();
+      const reply = data.choices[0].message.content;
+      output.innerHTML += `<p><strong>Grok-Pi:</strong> ${reply}</p>`;
+
+      // Scroll to bottom
+      output.scrollTop = output.scrollHeight;
+    } catch (error) {
+      output.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
+    }
   }
+
+  // Allow Enter key to send
+  document.getElementById('input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+  });
 </script>
   <p>Follow here for updates</p>
 <p>$MOLT contract coming soon — fair launch on Pump.fun.</p>
 </body>
 
 </html>
+
 
 
 
